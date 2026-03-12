@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/linkup_db
+    username: YOUR_DB_USERNAME
+    password: YOUR_DB_PASSWORD
+
+  mail:
+    username: YOUR_GMAIL
+    password: YOUR_APP_PASSWORD
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+
+jwt:
+  secret: YOUR_JWT_SECRET
+  expiration: 86400000
+
+app:
+  frontend:
+    url: http://localhost:5173
+  otp:
+    expiry:
+      minutes: 10
