@@ -2,6 +2,8 @@ package com.chatapp.chat_backend.entity;
 
 import com.chatapp.chat_backend.enums.AuthProvider;
 import com.chatapp.chat_backend.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "users")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
     @Id
@@ -20,7 +23,7 @@ public class User {
 
     @Column(nullable = false)
     private String name;
-
+    @JsonIgnore
     private String password; // Null for Google/OTP users
 
     private String profilePicture;

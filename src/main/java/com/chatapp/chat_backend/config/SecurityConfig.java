@@ -19,8 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtFilter  jwtFilter;
-    private final OAuth2SuccessHandler  oAuth2SuccessHandler;
+    private final JwtFilter jwtFilter;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http)
             throws Exception {
@@ -28,6 +29,14 @@ public class SecurityConfig {
         return http
                 // CSRF disable — JWT use kar rahe hain, session nahi
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(request -> {
+                    var config = new org.springframework.web.cors.CorsConfiguration();
+                    config.setAllowedOriginPatterns(java.util.List.of("*"));
+                    config.setAllowedMethods(java.util.List.of("*"));
+                    config.setAllowedHeaders(java.util.List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
 
                 // Session mat banao — har request self-contained hai
                 .sessionManagement(session -> session
@@ -64,10 +73,10 @@ public class SecurityConfig {
     }
 
     // Password hashing ke liye — BCrypt sabse secure hai
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public BCryptPasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
 
     // AuthenticationManager — login verify karne ke liye
     @Bean

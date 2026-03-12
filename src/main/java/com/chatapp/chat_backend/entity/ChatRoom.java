@@ -1,5 +1,6 @@
 package com.chatapp.chat_backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -20,15 +21,19 @@ public class ChatRoom {
 
     private String description;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+//    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "room_members",
             joinColumns = @JoinColumn(name = "room_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    // Members field pe:
+    @ManyToMany
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "members"})
     private Set<User> members = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "members", "password"})
     @JoinColumn(name = "created_by")
     private User createdBy;
 
