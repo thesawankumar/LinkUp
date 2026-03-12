@@ -1,0 +1,55 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: chat-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chatapp
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: sawankushwaha222@gmail.com
+    password: swmm oaap uewk lluu
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 27554747132-8ju54dcfooi2cg8l6cf6tcvlt8ne7le4.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+
+jwt:
+  secret: 3rerhgsgfhsjhsgfsdhdasga4546rghdgstrergfhn
+  expiration: 86400000
+
+app:
+  frontend:
+    url: http://localhost:5173
+  otp:
+    expiry:
+      minutes: 10
