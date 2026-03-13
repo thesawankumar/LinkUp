@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,11 +60,37 @@ public class MessageService {
                         roomId,
                         PageRequest.of(0, 50)
                 );
+        // Reverse karo — purana pehle dikhega
+        Collections.reverse(messages);
 
         // Reverse karo — purana pehle dikhega chat mein
         return messages.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+
+    public MessageDTO editMessage(Long messageId, Long userId, String newContent) {
+        Message msg = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message nahi mila!"));
+
+        if (!msg.getSender().getId().equals(userId))
+            throw new RuntimeException("Sirf apna message edit kar sakte ho!");
+
+        msg.setContent(newContent);
+        msg.setEdited(true);
+        Message saved = messageRepository.save(msg);
+        return convertToDTO(saved);
+    }
+
+    public void deleteMessage(Long messageId, Long userId) {
+        Message msg = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message nahi mila!"));
+
+        if (!msg.getSender().getId().equals(userId))
+            throw new RuntimeException("Sirf apna message delete kar sakte ho!");
+
+        messageRepository.delete(msg);
     }
 
     // ─── Entity → DTO convert karo ───────────────────────
@@ -78,6 +105,7 @@ public class MessageService {
         dto.setRoomId(message.getChatRoom().getId());
         dto.setSentAt(message.getSentAt());
         dto.setType(message.getType());
+        dto.setEdited(message.isEdited());
         return dto;
     }
 }

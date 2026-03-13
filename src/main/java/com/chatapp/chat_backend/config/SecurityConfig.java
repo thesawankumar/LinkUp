@@ -45,15 +45,11 @@ public class SecurityConfig {
 
                 // URL rules
                 .authorizeHttpRequests(auth -> auth
-
-                        // Yeh sab OPEN hain — token nahi chahiye
                         .requestMatchers(
-                                "/api/auth/**",    // register, login, otp
-                                "/oauth2/**",      // google login
-                                "/ws/**"           // websocket
+                                "/api/auth/**",
+                                "/oauth2/**",
+                                "/ws/**"
                         ).permitAll()
-
-                        // Baaki sab ke liye token COMPULSORY hai
                         .anyRequest().authenticated()
                 )
 

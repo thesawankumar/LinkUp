@@ -16,4 +16,5 @@ public class MessageDTO {
     private Long roomId;
     private LocalDateTime sentAt;
     private MessageType type;
+    private boolean edited;
 }

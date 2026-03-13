@@ -1,6 +1,7 @@
 package com.chatapp.chat_backend.service;
 
 import com.chatapp.chat_backend.entity.User;
+import com.chatapp.chat_backend.enums.RoomType;
 import com.chatapp.chat_backend.repository.ChatRoomRepository;
 import com.chatapp.chat_backend.repository.UserRepository;
 import com.chatapp.chat_backend.entity.ChatRoom;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,49 @@ public class ChatRoomService {
         return chatRoomRepository.save(room);
     }
 
+    // Direct message room banao ya already hai toh wahi lo
+    public ChatRoom getOrCreateDirectRoom(String user1Email, String user2Email) {
+
+        User user1 = userRepository.findByEmail(user1Email)
+                .orElseThrow(() -> new RuntimeException("User nahi mila!"));
+        User user2 = userRepository.findByEmail(user2Email)
+                .orElseThrow(() -> new RuntimeException("User nahi mila!"));
+
+        // Pehle se room hai?
+        Optional<ChatRoom> existing = chatRoomRepository
+                .findDirectRoom(user1, user2);
+
+        if (existing.isPresent()) return existing.get();
+
+        // Nahi hai — banao
+        ChatRoom room = new ChatRoom();
+        room.setName(user1.getName() + " & " + user2.getName());
+        room.setRoomType(RoomType.DIRECT);
+        room.getMembers().add(user1);
+        room.getMembers().add(user2);
+        room.setCreatedBy(user1);
+
+        return chatRoomRepository.save(room);
+    }
+
+    // Sirf GROUP rooms lo
+    public List<ChatRoom> getGroupRooms() {
+        return chatRoomRepository.findAll()
+                .stream()
+                .filter(r -> r.getRoomType() == RoomType.GROUP)
+                .collect(Collectors.toList());
+    }
+
+    // User ke saare DM rooms lo
+    public List<ChatRoom> getDirectRooms(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow();
+        return chatRoomRepository.findAll()
+                .stream()
+                .filter(r -> r.getRoomType() == RoomType.DIRECT
+                        && r.getMembers().contains(user))
+                .collect(Collectors.toList());
+    }
     // ─── ROOM JOIN KARO ──────────────────────────────────
     public ChatRoom joinRoom(Long roomId, String userEmail) {
 

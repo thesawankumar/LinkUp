@@ -36,6 +36,10 @@ package com.chatapp.chat_backend.controller;
 
 import com.chatapp.chat_backend.dtos.MessageDTO;
 import com.chatapp.chat_backend.dtos.TypingDTO;
+import com.chatapp.chat_backend.entity.Message;
+import com.chatapp.chat_backend.entity.User;
+import com.chatapp.chat_backend.repository.MessageRepository;
+import com.chatapp.chat_backend.repository.UserRepository;
 import com.chatapp.chat_backend.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,10 +47,13 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,6 +61,8 @@ public class MessageController {
 
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserRepository  userRepository;
+    private final MessageRepository messageRepository;
 
     @GetMapping("/api/messages/{roomId}")
     public ResponseEntity<List<com.chatapp.chat_backend.dtos.MessageDTO>> getMessages(
@@ -98,5 +107,51 @@ public class MessageController {
                 "/topic/chatroom/" + roomId + "/typing",
                 typingDTO
         );
+    }
+
+    // Edit message
+    @PutMapping("/api/messages/{messageId}")
+    public ResponseEntity<MessageDTO> editMessage(
+            @PathVariable Long messageId,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User nahi mila!"));
+
+        MessageDTO updated = messageService.editMessage(
+                messageId, user.getId(), body.get("content")
+        );
+
+        // WebSocket pe broadcast karo
+        messagingTemplate.convertAndSend(
+                "/topic/room/" + updated.getRoomId() + "/edit", updated
+        );
+
+        return ResponseEntity.ok(updated);
+    }
+
+    // Delete message
+    @DeleteMapping("/api/messages/{messageId}")
+    public ResponseEntity<Void> deleteMessage(
+            @PathVariable Long messageId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User nahi mila!"));
+
+        Long roomId = messageRepository.findById(messageId)
+                .map(m -> m.getChatRoom().getId())
+                .orElseThrow(() -> new RuntimeException("Message nahi mila!"));
+
+        messageService.deleteMessage(messageId, user.getId());
+
+        // WebSocket pe broadcast karo
+        messagingTemplate.convertAndSend(
+                "/topic/room/" + roomId + "/delete",
+                Map.of("messageId", messageId)
+        );
+
+        return ResponseEntity.noContent().build();
     }
 }

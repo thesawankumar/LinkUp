@@ -27,6 +27,9 @@ public class Message {
 
     private LocalDateTime sentAt = LocalDateTime.now();
 
+    @Column(nullable = false)
+    private boolean edited = false;
+
     @Enumerated(EnumType.STRING)
     private MessageType type = MessageType.CHAT;
 }
