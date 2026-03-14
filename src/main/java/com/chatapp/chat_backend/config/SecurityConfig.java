@@ -2,6 +2,7 @@ package com.chatapp.chat_backend.config;
 
 import com.chatapp.chat_backend.security.JwtFilter;
 import com.chatapp.chat_backend.security.OAuth2SuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtFilter jwtFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
@@ -44,42 +46,41 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/files/**",
                                 "/oauth2/**",
                                 "/ws/**",
-                                "/login/**",           // ← ADD
+                                "/login/**",
                                 "/login/oauth2/**",
-                                "/api/files/**",
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
 
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(authEndpoint -> authEndpoint
-                                .baseUri("/oauth2/authorization")  // ← ADD
+                        .authorizationEndpoint(auth -> auth
+                                .baseUri("/oauth2/authorization")
                         )
                         .successHandler(oAuth2SuccessHandler)
                 )
 
-                // ← KEY FIX: API calls pe Google redirect nahi, 401 JSON do
+                // ← KEY FIX: API calls pe JSON 401, redirect nahi
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                        })
-                        // ← YEH KEY HAI — OAuth redirect sirf browser requests pe
-                        .defaultAuthenticationEntryPointFor(
+                        .authenticationEntryPoint(
                                 (request, response, authException) -> {
-                                    response.setStatus(401);
-                                    response.setContentType("application/json");
-                                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                                },
-                                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**")
+                                    String path = request.getRequestURI();
+                                    if (path.startsWith("/api/")) {
+                                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                        response.setContentType("application/json");
+                                        response.getWriter()
+                                                .write("{\"error\":\"Unauthorized\"}");
+                                    } else {
+                                        response.sendRedirect("/login");
+                                    }
+                                }
                         )
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
