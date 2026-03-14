@@ -80,7 +80,10 @@ public class MessageController {
         MessageDTO saved = messageService.saveMessage(
                 messageDTO.getContent(),
                 principal.getName(),
-                roomId
+                roomId,
+                messageDTO.getFileUrl(),    // ← ADD
+                messageDTO.getFileType(),   // ← ADD
+                messageDTO.getFileName()
         );
         messagingTemplate.convertAndSend(
                 "/topic/chatroom/" + roomId,

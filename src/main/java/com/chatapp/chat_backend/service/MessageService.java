@@ -25,7 +25,8 @@ public class MessageService {
 
     // ─── MESSAGE SAVE KARO ───────────────────────────────
     public MessageDTO saveMessage(String content, String senderEmail,
-                                  Long roomId) {
+                                  Long roomId,String fileUrl,
+                                  String fileType, String fileName) {
 
         User sender = userRepository.findByEmail(senderEmail)
                 .orElseThrow(() ->
@@ -43,6 +44,9 @@ public class MessageService {
         message.setSender(sender);
         message.setChatRoom(room);
         message.setType(MessageType.CHAT);
+        message.setFileUrl(fileUrl);       // ← ADD
+        message.setFileType(fileType);     // ← ADD
+        message.setFileName(fileName);
 
         // Save karo
         Message saved = messageRepository.save(message);
@@ -106,6 +110,9 @@ public class MessageService {
         dto.setSentAt(message.getSentAt());
         dto.setType(message.getType());
         dto.setEdited(message.isEdited());
+        dto.setFileUrl(message.getFileUrl());
+        dto.setFileType(message.getFileType());
+        dto.setFileName(message.getFileName());
         return dto;
     }
 }

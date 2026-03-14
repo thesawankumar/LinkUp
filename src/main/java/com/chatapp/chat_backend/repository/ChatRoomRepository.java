@@ -1,19 +1,24 @@
 package com.chatapp.chat_backend.repository;
 
 import com.chatapp.chat_backend.entity.ChatRoom;
-import com.chatapp.chat_backend.entity.User;
+import com.chatapp.chat_backend.enums.RoomType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
-    // Do users ke beech direct room dhundo
-    @Query("SELECT r FROM ChatRoom r WHERE r.roomType = 'DIRECT' AND " +
-            ":user1 MEMBER OF r.members AND :user2 MEMBER OF r.members")
+
+    // ← Yahi fix hai — User object nahi, Long id se query
+    @Query("SELECT r FROM ChatRoom r JOIN r.members m1 JOIN r.members m2 " +
+            "WHERE r.roomType = :roomType " +
+            "AND m1.id = :userId1 AND m2.id = :userId2 " +
+            "AND SIZE(r.members) = 2")
     Optional<ChatRoom> findDirectRoom(
-            @Param("user1") User user1,
-            @Param("user2") User user2
+            @Param("userId1") Long userId1,
+            @Param("userId2") Long userId2,
+            @Param("roomType") RoomType roomType
     );
 }

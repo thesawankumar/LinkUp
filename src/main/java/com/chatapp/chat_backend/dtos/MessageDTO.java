@@ -17,4 +17,7 @@ public class MessageDTO {
     private LocalDateTime sentAt;
     private MessageType type;
     private boolean edited;
+    private String fileUrl;
+    private String fileType;
+    private String fileName;
 }

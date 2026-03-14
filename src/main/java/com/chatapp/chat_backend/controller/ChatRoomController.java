@@ -76,18 +76,17 @@ public class ChatRoomController {
     }
 
     // POST /api/rooms/direct/{userId}
-    @PostMapping("/direct/{userId}")
-    public ResponseEntity<ChatRoom> createDirectRoom(
-            @PathVariable Long userId,
+    @PostMapping("/api/rooms/direct/{targetUserId}")
+    public ResponseEntity<ChatRoom> getOrCreateDirectRoom(
+            @PathVariable Long targetUserId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        User targetUser = userRepository.findById(userId)
+        User currentUser = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User nahi mila!"));
 
-        ChatRoom room = chatRoomService.getOrCreateDirectRoom(
-                userDetails.getUsername(),
-                targetUser.getEmail()
-        );
+        ChatRoom room = chatRoomService
+                .getOrCreateDirectRoom(currentUser.getId(), targetUserId);
+
         return ResponseEntity.ok(room);
     }
 

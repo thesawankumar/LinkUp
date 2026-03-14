@@ -33,6 +33,7 @@ public class ChatRoomService {
         room.setName(name);
         room.setDescription(description);
         room.setCreatedBy(creator);
+        room.setRoomType(RoomType.GROUP);
 
         // Creator automatically member ban jayega
         room.getMembers().add(creator);
@@ -41,26 +42,25 @@ public class ChatRoomService {
     }
 
     // Direct message room banao ya already hai toh wahi lo
-    public ChatRoom getOrCreateDirectRoom(String user1Email, String user2Email) {
-
-        User user1 = userRepository.findByEmail(user1Email)
-                .orElseThrow(() -> new RuntimeException("User nahi mila!"));
-        User user2 = userRepository.findByEmail(user2Email)
-                .orElseThrow(() -> new RuntimeException("User nahi mila!"));
-
-        // Pehle se room hai?
+    public ChatRoom getOrCreateDirectRoom(Long userId1, Long userId2) {
+        // Pehle existing room check karo
         Optional<ChatRoom> existing = chatRoomRepository
-                .findDirectRoom(user1, user2);
-
+                .findDirectRoom(userId1, userId2, RoomType.DIRECT);
         if (existing.isPresent()) return existing.get();
 
-        // Nahi hai — banao
+        // Dono users fetch karo
+        User user1 = userRepository.findById(userId1)
+                .orElseThrow(() -> new RuntimeException("User1 nahi mila!"));
+        User user2 = userRepository.findById(userId2)
+                .orElseThrow(() -> new RuntimeException("User2 nahi mila!"));
+
+        // Naya DM room banao
         ChatRoom room = new ChatRoom();
         room.setName(user1.getName() + " & " + user2.getName());
-        room.setRoomType(RoomType.DIRECT);
+        room.setRoomType(RoomType.DIRECT);  // ← ZAROORI
+        room.setCreatedBy(user1);
         room.getMembers().add(user1);
         room.getMembers().add(user2);
-        room.setCreatedBy(user1);
 
         return chatRoomRepository.save(room);
     }

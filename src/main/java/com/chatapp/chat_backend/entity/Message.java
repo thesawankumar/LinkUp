@@ -30,6 +30,16 @@ public class Message {
     @Column(nullable = false)
     private boolean edited = false;
 
+    // Existing fields ke saath add karo
+    @Column(nullable = true)
+    private String fileUrl;      // file ka path
+
+    @Column(nullable = true)
+    private String fileType;     // "image", "video", "file"
+
+    @Column(nullable = true)
+    private String fileName;     // original file name
+
     @Enumerated(EnumType.STRING)
     private MessageType type = MessageType.CHAT;
 }
