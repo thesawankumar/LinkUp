@@ -48,7 +48,8 @@ public class SecurityConfig {
                                 "/ws/**",
                                 "/login/**",           // ← ADD
                                 "/login/oauth2/**",
-                                "/api/files/**"
+                                "/api/files/**",
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -63,18 +64,20 @@ public class SecurityConfig {
                 // ← KEY FIX: API calls pe Google redirect nahi, 401 JSON do
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            String path = request.getRequestURI();
-                            if (path.startsWith("/api/")) {
-                                response.setStatus(401);
-                                response.setContentType("application/json");
-                                response.getWriter()
-                                        .write("{\"error\": \"Unauthorized — token missing or expired\"}");
-                            } else {
-                                response.sendRedirect("/login");
-                            }
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Unauthorized\"}");
                         })
+                        // ← YEH KEY HAI — OAuth redirect sirf browser requests pe
+                        .defaultAuthenticationEntryPointFor(
+                                (request, response, authException) -> {
+                                    response.setStatus(401);
+                                    response.setContentType("application/json");
+                                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                                },
+                                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**")
+                        )
                 )
-
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .build();
