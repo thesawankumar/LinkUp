@@ -76,7 +76,7 @@ public class ChatRoomController {
     }
 
     // POST /api/rooms/direct/{userId}
-    @PostMapping("/api/rooms/direct/{targetUserId}")
+    @PostMapping("/direct/{targetUserId}")
     public ResponseEntity<ChatRoom> getOrCreateDirectRoom(
             @PathVariable Long targetUserId,
             @AuthenticationPrincipal UserDetails userDetails) {
